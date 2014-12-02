@@ -1,0 +1,7 @@
+<launch>
+    <node name="pose_collector" pkg="extrinsics_calib" type="collect_poses_manual" output="screen">
+        <param name="camera_base_topic" value="/softkinetic_camera/rgb/image"/>
+        <param name="base_link" value="/base_link"/>
+        <param name="link_name" value="/Hand_Link"/>
+    </node>
+</launch>

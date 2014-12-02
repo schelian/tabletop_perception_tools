@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/!svn/ver/31849/pr-ros-pkg/trunk/perception_utils/extrinsics_calib/launch
+END
+collect_poses_kinect2_herb.launch
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/!svn/ver/32030/pr-ros-pkg/trunk/perception_utils/extrinsics_calib/launch/collect_poses_kinect2_herb.launch
+END
+collect_poses_kinect.launch
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/!svn/ver/32030/pr-ros-pkg/trunk/perception_utils/extrinsics_calib/launch/collect_poses_kinect.launch
+END
