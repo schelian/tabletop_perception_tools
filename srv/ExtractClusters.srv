@@ -1,6 +1,11 @@
 string point_cloud_topic
-bool segment_plane
-float32 tolerance
+bool segment_planes
+int32 num_planes
+float32 plane_distance
+bool segment_depth
+float32 min_depth
+float32 max_depth
+float32 cluster_tolerance
 int32 min_cluster_size
 int32 max_cluster_size
 ---

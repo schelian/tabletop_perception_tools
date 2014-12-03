@@ -11,11 +11,41 @@ find_package(catkin REQUIRED COMPONENTS
     pcl_ros
     )
 
-catkin_package(
-    INCLUDE_DIRS include
+add_message_files(
+    DIRECTORY
+    msg
+    FILES
+    Cluster.msg
 )
 
-include_directories(${catkin_INCLUDE_DIRS})
+add_service_files(
+    DIRECTORY
+    srv
+    FILES
+    ExtractClusters.srv
+)
+
+generate_messages(
+    DEPENDENCIES
+    ${PROJECT_NAME}
+    std_msgs
+    sensor_msgs
+    geometry_msgs
+)
+
+
+catkin_package(
+    INCLUDE_DIRS include
+    CATKIN_DEPENDS message_runtime std_msgs sensor_msgs geometry_msgs
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+ FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+)
+
+
+include_directories(${catkin_INCLUDE_DIRS} include)
 add_executable(tools_server src/tools_server.cpp)
-target_link_libraries(tools_server ${catkin_LIBRARIES})
+target_link_libraries(tools_server ${catkin_LIBRARIES} libvtkCommon.so libvtkFiltering.so)
 
