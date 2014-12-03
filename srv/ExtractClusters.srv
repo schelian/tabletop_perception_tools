@@ -1,0 +1,8 @@
+string point_cloud_topic
+bool segment_plane
+float32 tolerance
+int32 min_cluster_size
+int32 max_cluster_size
+---
+Cluster[] clusters
+
