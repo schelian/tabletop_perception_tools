@@ -4,6 +4,7 @@ project(tabletop_perception_tools)
 find_package(catkin REQUIRED COMPONENTS
     std_msgs
     roscpp
+    rospy
     sensor_msgs
     cv_bridge
     tf
@@ -48,4 +49,6 @@ install(DIRECTORY include/${PROJECT_NAME}/
 include_directories(${catkin_INCLUDE_DIRS} include)
 add_executable(tools_server src/tools_server.cpp)
 target_link_libraries(tools_server ${catkin_LIBRARIES} libvtkCommon.so libvtkFiltering.so)
+add_dependencies( tools_server ${PROJECT_NAME}_generate_messages_cpp )
+add_dependencies( tools_server ${PROJECT_NAME}_generate_messages_py )
 
