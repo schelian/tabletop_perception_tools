@@ -8,5 +8,8 @@ float32 max_depth
 float32 cluster_tolerance
 int32 min_cluster_size
 int32 max_cluster_size
+bool segment_box
+geometry_msgs/Point box_min
+geometry_msgs/Point box_max
 ---
-Cluster[] clusters
+Block[] blocks

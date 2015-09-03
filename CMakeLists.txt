@@ -17,6 +17,7 @@ add_message_files(
     msg
     FILES
     Cluster.msg
+    Block.msg
 )
 
 add_service_files(
@@ -24,6 +25,7 @@ add_service_files(
     srv
     FILES
     ExtractClusters.srv
+    FindBlocks.srv
 )
 
 generate_messages(

@@ -151,6 +151,11 @@ namespace pcl_helpers
 
     }
 
+    float randf()
+    {
+        return (float)(rand()) / (float)(RAND_MAX);
+    }
+
     template <typename PointT> void ExtractClusters(const typename pcl::PointCloud<PointT>::Ptr& points, std::vector<Cluster<PointT> >* clusters, float tolerance = 0.2f, int minClusterSize = 100, int maxClusterSize = 25000)
     {
         // Creating the KdTree object for the search method of the extraction
@@ -165,13 +170,15 @@ namespace pcl_helpers
         ec.setSearchMethod(tree);
         ec.setInputCloud(points);
         ec.extract(cluster_indices);
+
+        /*
         pcl::visualization::PCLVisualizer* viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));
         viewer->setBackgroundColor (0, 0, 0);
         viewer->addCoordinateSystem (1.0);
         viewer->initCameraParameters ();
-        //viewer->addPointCloud(points, "FullPoints");
-
-        int j = 0;
+        viewer->addPointCloud(points, "FullPoints");
+        */
+        //int j = 0;
         for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin(); it != cluster_indices.end(); ++it)
         {
             typename pcl::PointCloud<PointT>::Ptr cloud_cluster(new pcl::PointCloud<PointT>);
@@ -187,19 +194,25 @@ namespace pcl_helpers
             cluster.points = cloud_cluster;
             cluster.bounds = ComputeBounds<PointT>(cloud_cluster);
             clusters->push_back(cluster);
+            /*
             std::stringstream ss;
             ss << j;
-            pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> single_color (points, (j * 100) % 255, 255, 150);
+
+            pcl::visualization::PointCloudColorHandlerCustom<PointT> single_color (points, randf() * 255, randf() * 255, randf() * 255);
             viewer->addPointCloud<PointT> (cloud_cluster, single_color, "cluster " + ss.str());
             j++;
+            */
         }
 
+        /*
         while (!viewer->wasStopped ())
         {
           viewer->spinOnce (100);
           boost::this_thread::sleep (boost::posix_time::microseconds (100000));
         }
         delete viewer;
+        */
+
     }
 }
 

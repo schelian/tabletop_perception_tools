@@ -1,5 +1,0 @@
-string point_cloud_topic
-bool segment_plane
-float tolerance
-int min_cluster_size
-int max_cluster_size
