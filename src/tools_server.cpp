@@ -41,7 +41,7 @@ bool ExtractClustersService(ExtractClusters::Request& request, ExtractClusters::
     std::string topic = request.point_cloud_topic;
     pointCloudDirty = true;
     ros::Subscriber sub = nodeHandle->subscribe(topic, 1, &PointCloudCallback);
-    ros::Duration timeout(5);
+    ros::Duration timeout(15);
     ros::Time begin = ros::Time::now();
     ROS_INFO("Waiting for point cloud %s", topic.c_str());
     while (pointCloudDirty)
