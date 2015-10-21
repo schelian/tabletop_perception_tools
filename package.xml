@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>tabletop_perception_tools</name>
-  <version>0.0.0</version>
+  <version>1.0.0</version>
   <description>Some basic 3D vision tools for detecting objects on tabletops</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
