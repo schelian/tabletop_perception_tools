@@ -136,7 +136,7 @@ bool FindBlocksService(FindBlocks::Request& request, FindBlocks::Response& respo
     std::string topic = request.point_cloud_topic;
     pointCloudDirty = true;
     ros::Subscriber sub = nodeHandle->subscribe(topic, 1, &PointCloudCallback);
-    ros::Duration timeout(5);
+    ros::Duration timeout(20);
     ros::Time begin = ros::Time::now();
     ROS_INFO("Waiting for point cloud %s", topic.c_str());
     while (pointCloudDirty)
