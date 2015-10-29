@@ -103,6 +103,43 @@ namespace pcl_helpers
 
     }
 
+    template <typename PointT> bool DetectPlane(const typename pcl::PointCloud<PointT>::Ptr& points, std::vector<float>& plane_params,
+             float distanceThreshold = 0.015f, int methodType = pcl::SAC_RANSAC, int modelType = pcl::SACMODEL_PLANE)
+    {
+        pcl::SACSegmentation<PointT> seg;
+        pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+        pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+        typename pcl::PointCloud<PointT>::Ptr cloud_plane(new pcl::PointCloud<PointT>());
+        seg.setOptimizeCoefficients(true);
+        seg.setModelType(modelType);
+        seg.setMethodType(methodType);
+        seg.setMaxIterations(100);
+        seg.setDistanceThreshold(distanceThreshold);
+
+        typename pcl::PointCloud<PointT>::Ptr cloud_filtered(new pcl::PointCloud<PointT>(*points));
+        std::vector<int> nanIndex;
+        pcl::removeNaNFromPointCloud(*cloud_filtered,*cloud_filtered, nanIndex);
+        size_t nr_points = cloud_filtered->points.size();
+
+        //Get largest plane component params
+        inliers->indices.clear();
+        seg.setInputCloud(cloud_filtered);
+        seg.segment(*inliers, *coefficients);
+
+        if (inliers->indices.size() == 0)
+        {
+            //No inliers -> plane not detected
+            return false;
+        }
+        else
+        {
+            plane_params = coefficients->values;
+            return true;
+        }
+
+
+    }   
+
 
     template <typename PointT> typename pcl::PointCloud<PointT>::Ptr RemoveLargePlanes(const typename pcl::PointCloud<PointT>::Ptr& points,
             int numPlanes = 1, float distanceThreshold = 0.015f, int methodType = pcl::SAC_RANSAC, int modelType = pcl::SACMODEL_PLANE)
