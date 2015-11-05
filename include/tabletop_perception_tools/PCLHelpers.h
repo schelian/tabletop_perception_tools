@@ -20,6 +20,9 @@
 
 #include "Geometry.h"
 
+#include <pcl/filters/project_inliers.h>
+#include <pcl/surface/concave_hull.h>
+
 namespace pcl_helpers
 {
     template<typename PointT> struct Cluster
@@ -28,6 +31,7 @@ namespace pcl_helpers
             OBB bounds;
     };
 
+    /// returns set of points in bounding box of 'min' and 'max'
     template<typename PointT> typename pcl::PointCloud<PointT>::Ptr FilterBoundingBox(const typename pcl::PointCloud<PointT>::Ptr& points, const Vec3& min, const Vec3& max)
     {
         typename pcl::PointCloud<PointT>::Ptr cloud_filtered(new pcl::PointCloud<PointT>(*points));
@@ -65,6 +69,7 @@ namespace pcl_helpers
     }
 
 
+    /// returns rotation, translation, min and max for 'points'
     template<typename PointT> OBB ComputeBounds(const typename pcl::PointCloud<PointT>::Ptr& points)
     {
         // compute principal direction
@@ -103,7 +108,72 @@ namespace pcl_helpers
 
     }
 
+    /// return coefficients of largest plane in 'points'
+    template <typename PointT> bool DetectPlane(const typename pcl::PointCloud<PointT>::Ptr& points, std::vector<float>& plane_params,
+             float distanceThreshold = 0.015f, int methodType = pcl::SAC_RANSAC, int modelType = pcl::SACMODEL_PLANE)
+    {
+        pcl::SACSegmentation<PointT> seg;
+        pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+        pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+        typename pcl::PointCloud<PointT>::Ptr cloud_plane(new pcl::PointCloud<PointT>());
+        seg.setOptimizeCoefficients(true);
+        seg.setModelType(modelType);
+        seg.setMethodType(methodType);
+        seg.setMaxIterations(100);
+        seg.setDistanceThreshold(distanceThreshold);
 
+        typename pcl::PointCloud<PointT>::Ptr cloud_filtered(new pcl::PointCloud<PointT>(*points));
+        std::vector<int> nanIndex;
+        pcl::removeNaNFromPointCloud(*cloud_filtered,*cloud_filtered, nanIndex);
+        size_t nr_points = cloud_filtered->points.size();
+
+        //Get largest plane component params
+        inliers->indices.clear();
+        seg.setInputCloud(cloud_filtered);
+        seg.segment(*inliers, *coefficients);
+
+        if (inliers->indices.size() == 0)
+        {
+            //No inliers -> plane not detected
+            return false;
+        }
+        else
+        {
+            plane_params = coefficients->values;
+
+	    // extract convex hull of plane (see http://pointclouds.org/documentation/tutorials/hull_2d.php#hull-2d)
+
+//pcl::PointCloud<pcl::PointT>::Ptr cloud_projected (new pcl::PointCloud<pcl::PointXYZ>);
+  typename pcl::PointCloud<PointT>::Ptr cloud_projected(new pcl::PointCloud<PointT>());
+
+// Project the model inliers
+  pcl::ProjectInliers< PointT > proj;
+  proj.setModelType (pcl::SACMODEL_PLANE);
+  proj.setIndices (inliers);
+  proj.setInputCloud (cloud_filtered);
+  proj.setModelCoefficients (coefficients);
+  proj.filter( *cloud_projected );
+  std::cerr << "PointCloud after projection has: "
+            << cloud_projected->points.size () << " data points." << std::endl;
+
+  // Create a Concave Hull representation of the projected inliers
+
+  //typename pcl::PointCloud<PointT>::Ptr cloud_hull(new pcl::PointCloud<PointT>());
+    typename pcl::PointCloud<PointT>::Ptr cloud_hull(new pcl::PointCloud<PointT>());
+  pcl::ConcaveHull< PointT > chull;
+  chull.setInputCloud (cloud_projected);
+  chull.setAlpha (0.1);
+  chull.reconstruct (*cloud_hull);
+
+  std::cerr << "Concave hull has: " << cloud_hull->points.size ()
+            << " data points." << std::endl;
+            return true;
+        }
+
+
+    }   
+
+    /// remove large planes
     template <typename PointT> typename pcl::PointCloud<PointT>::Ptr RemoveLargePlanes(const typename pcl::PointCloud<PointT>::Ptr& points,
             int numPlanes = 1, float distanceThreshold = 0.015f, int methodType = pcl::SAC_RANSAC, int modelType = pcl::SACMODEL_PLANE)
     {
@@ -151,11 +221,13 @@ namespace pcl_helpers
 
     }
 
+    /// random number in [0,1]
     float randf()
     {
         return (float)(rand()) / (float)(RAND_MAX);
     }
 
+    /// extract clusters of objects from 'points' (objects are assumed to be above a plane)
     template <typename PointT> void ExtractClusters(const typename pcl::PointCloud<PointT>::Ptr& points, std::vector<Cluster<PointT> >* clusters, float tolerance = 0.2f, int minClusterSize = 100, int maxClusterSize = 25000)
     {
         // Creating the KdTree object for the search method of the extraction

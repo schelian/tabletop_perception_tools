@@ -18,6 +18,7 @@
 #include <tabletop_perception_tools/PCLHelpers.h>
 #include <tabletop_perception_tools/ExtractClusters.h>
 #include <tabletop_perception_tools/FindBlocks.h>
+#include <tabletop_perception_tools/DetectPlane.h>
 #include <visualization_msgs/MarkerArray.h>
 
 using namespace tabletop_perception_tools;
@@ -41,7 +42,7 @@ bool ExtractClustersService(ExtractClusters::Request& request, ExtractClusters::
     std::string topic = request.point_cloud_topic;
     pointCloudDirty = true;
     ros::Subscriber sub = nodeHandle->subscribe(topic, 1, &PointCloudCallback);
-    ros::Duration timeout(5);
+    ros::Duration timeout(15);
     ros::Time begin = ros::Time::now();
     ROS_INFO("Waiting for point cloud %s", topic.c_str());
     while (pointCloudDirty)
@@ -136,7 +137,7 @@ bool FindBlocksService(FindBlocks::Request& request, FindBlocks::Response& respo
     std::string topic = request.point_cloud_topic;
     pointCloudDirty = true;
     ros::Subscriber sub = nodeHandle->subscribe(topic, 1, &PointCloudCallback);
-    ros::Duration timeout(5);
+    ros::Duration timeout(20);
     ros::Time begin = ros::Time::now();
     ROS_INFO("Waiting for point cloud %s", topic.c_str());
     while (pointCloudDirty)
@@ -259,6 +260,54 @@ bool FindBlocksService(FindBlocks::Request& request, FindBlocks::Response& respo
     return true;
 }
 
+
+bool DetectPlaneService(DetectPlane::Request& request, DetectPlane::Response& response)
+{
+    std::string topic = request.point_cloud_topic;
+    pointCloudDirty = true;
+    ros::Subscriber sub = nodeHandle->subscribe(topic, 1, &PointCloudCallback);
+    ros::Duration timeout(15);
+    ros::Time begin = ros::Time::now();
+    ROS_INFO("Waiting for point cloud %s", topic.c_str());
+    while (pointCloudDirty)
+    {
+        usleep(10000);
+        ROS_INFO("Waiting...");
+        if (ros::Time::now() - begin > timeout)
+        {
+            ROS_WARN("Timeout exceeded waiting for point cloud %s", topic.c_str());
+            return false;
+        }
+    }
+
+    ROS_INFO("Got point cloud. Extracting");
+    PointCloud::Ptr pointCloud(new PointCloud(*lastPointCloud));
+    std::vector<float> plane_params;
+
+    //Try to detect plane
+    bool plane_detected = pcl_helpers::DetectPlane<Point>(pointCloud,plane_params);
+
+    if(plane_detected)
+    {
+        response.a = plane_params[0];
+        response.b = plane_params[1];
+        response.c = plane_params[2];
+        response.d = plane_params[3];
+        response.ok = true;
+
+        ROS_INFO_STREAM("Found plane! Coefficients: ["<<response.a<<" "<<response.b<<" "<<response.c<<" "<<response.d<<"]");
+    }
+    else
+    {
+        response.ok = false;
+        ROS_INFO("Did not find plane!");
+    }
+
+    return true;
+}
+
+
+
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "tools_server");
@@ -266,6 +315,7 @@ int main(int argc, char** argv)
     nodeHandle = &node;
     ros::ServiceServer server = node.advertiseService(std::string("extract_clusters"), &ExtractClustersService);
     ros::ServiceServer block_server = node.advertiseService(std::string("find_blocks"), &FindBlocksService);
+    ros::ServiceServer plane_server = node.advertiseService(std::string("detect_planes"), &DetectPlaneService);
     vis_publisher = node.advertise<visualization_msgs::MarkerArray>(std::string("cluster_markers"), 1);
     cloud_pub = node.advertise<PointCloud>(std::string("filtered_cloud"), 1);
     ros::AsyncSpinner spinner(4);

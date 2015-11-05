@@ -26,6 +26,7 @@ add_service_files(
     FILES
     ExtractClusters.srv
     FindBlocks.srv
+    DetectPlane.srv
 )
 
 generate_messages(
