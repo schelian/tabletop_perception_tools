@@ -158,8 +158,7 @@ namespace pcl_helpers
 
   // Create a Concave Hull representation of the projected inliers
 
-  //typename pcl::PointCloud<PointT>::Ptr cloud_hull(new pcl::PointCloud<PointT>());
-    typename pcl::PointCloud<PointT>::Ptr cloud_hull(new pcl::PointCloud<PointT>());
+  typename pcl::PointCloud<PointT>::Ptr cloud_hull(new pcl::PointCloud<PointT>());
   pcl::ConcaveHull< PointT > chull;
   chull.setInputCloud (cloud_projected);
   chull.setAlpha (0.1);
@@ -167,6 +166,16 @@ namespace pcl_helpers
 
   std::cerr << "Concave hull has: " << cloud_hull->points.size ()
             << " data points." << std::endl;
+
+// get min/max
+  //typename pcl::PointCloud<PointT> min_pt, max_pt;
+  //pcl::PointCloud<PointT> min_pt, max_pt;
+  PointT min_pt, max_pt;
+  //pcl::PointXYZ min_pt, max_pt;
+  pcl::getMinMax3D(*cloud_hull, min_pt, max_pt);
+  std::cerr << "Min x, y, z = " << min_pt.x << " " << min_pt.y << " " << min_pt.z << endl;
+  std::cerr << "Max x, y, z = " << max_pt.x << " " << max_pt.y << " " << max_pt.z << endl;
+
             return true;
         }
 
